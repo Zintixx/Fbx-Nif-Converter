@@ -86,12 +86,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)packages\zlib-msvc14-x64.1.2.11.7795\build\native\include;$(SolutionDir)VulkanRayTracing;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\dependencies\tinyxml2;$(SolutionDir)packages\zlib-msvc14-x64.1.2.11.7795\build\native\include;$(SolutionDir)VulkanRayTracing;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)packages\zlib-msvc14-x64.1.2.11.7795\build\native\lib_debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)packages\zlib-msvc14-x64.1.2.11.7795\build\native\include;$(SolutionDir)VulkanRayTracing;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\dependencies\tinyxml2;$(SolutionDir)packages\zlib-msvc14-x64.1.2.11.7795\build\native\include;$(SolutionDir)VulkanRayTracing;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)packages\zlib-msvc14-x64.1.2.11.7795\build\native\lib_release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -139,7 +139,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\Include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
@@ -160,7 +160,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\Include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
@@ -453,6 +453,9 @@
     <None Include="shaderSource\fragment\normalmapconverter.frag" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TinyXML2\TinyXML2.vcxproj">
+      <Project>{b83503c1-61b7-44b0-9a9f-b5f3fe078295}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\VulkanModules\VulkanModules.vcxproj">
       <Project>{836aeb0c-b0fb-4eb8-8570-fade039fc53e}</Project>
     </ProjectReference>

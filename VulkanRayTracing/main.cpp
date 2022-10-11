@@ -9,7 +9,15 @@ import <sstream>;
 import <memory>;
 import <fstream>;
 import <set>;
+import <vector>;
+import <map>;
+#include <iostream>
 
+struct NTMaps;
+struct FlatEntity;
+namespace fs = std::filesystem;
+
+#include <tinyxml2.h>
 #include <Windows.h>
 
 #define VULKAN_HPP_NO_EXCEPTIONS
@@ -59,9 +67,13 @@ import <set>;
 #include <Engine/Assets/ModelPackageAsset.h>
 
 using namespace Engine;
+using namespace tinyxml2;
 
 void draw();
 void init(int, char**);
+void parse();
+void parseNTFile(std::ifstream&, std::map<std::string, std::string>&, bool);
+FlatEntity* parseFlat(NTMaps&, const fs::path&, const std::string&);
 
 std::string name; 
 
@@ -104,6 +116,8 @@ std::shared_ptr<Graphics::MeshAsset> handleAsset;
 std::shared_ptr<Graphics::MeshAsset> hairMeshAsset;
 std::vector<std::shared_ptr<Transform>> transforms;
 std::vector<std::shared_ptr<Transform>> handleTransforms;
+
+fs::path resourcesRoot("C:/Users/Adrian/Documents/GitHub/Fbx-Nif-Converter/VulkanRayTracing/resources");
 float spinAngle = 0.1f;
 
 float degreesToRadians(float degrees)
@@ -141,7 +155,7 @@ void draw()
 		handleTransforms[i]->Update(0);
 	}
 
-	std::cout << rotation.ExtractEulerAngles() << std::endl;
+	//std::cout << rotation.ExtractEulerAngles() << std::endl;
 }
 struct hairobj
 {
@@ -159,6 +173,7 @@ void init(int argc, char** argv)
 	std::string inputDirectory = "import/";
 	std::string outputDirectory = "export/";
 	bool recursiveSearch = false;
+	bool enableXBlockParsing = false;
 
 	std::vector<std::string> extensionBlacklist;
 	std::vector<std::string> extensionWhitelist;
@@ -173,6 +188,9 @@ void init(int argc, char** argv)
 
 		if (arg == "--recursive")
 			recursiveSearch = true;
+
+		if (arg == "--xblock-parse")
+			enableXBlockParsing = true;
 
 		if (arg == "--import-dir" && i + 1 < argc)
 			inputDirectory = argv[i + 1];
@@ -509,6 +527,282 @@ void init(int argc, char** argv)
 
 		meshAsset2->SetPath("models/sand_hawk.obj");
 		meshAsset2->Load();
+	}
+
+	if (enableXBlockParsing)
+	{
+		parse();
+	}
+}
+
+struct FlatEntity
+{
+	std::string ModelPath;
+	std::string NifAsset;
+	// position
+	// rotation
+};
+
+struct NTMaps
+{
+	std::map<std::string, std::string> RelPathMap;
+	std::map<std::string, std::string> LlidMap;
+	std::map<std::string, FlatEntity> FlatEntityMap;
+};
+
+void parse()
+{
+	if (!fs::exists(resourcesRoot))
+	{
+		std::cout << "failed to open resources directory" << std::endl;
+		return;
+	}
+
+	fs::path xBlock = resourcesRoot;
+	xBlock += fs::path("/Exported/xblock/02000062_tw_lith.xblock");
+	if (!fs::exists(xBlock))
+	{
+		std::cout << "failed to find 02000062_tw_lith.xblock file" << std::endl;
+		return;
+	}
+
+	fs::path nameNt = resourcesRoot;
+	fs::path relpathNt = resourcesRoot;
+	fs::path llidPath = resourcesRoot;
+	nameNt += fs::path("/asset-web-metadata/name.nt");
+	relpathNt += fs::path("/asset-web-metadata/relpath.nt");
+	llidPath += fs::path("/asset-web-metadata/llid.nt");
+
+	if (!fs::exists(nameNt) || !fs::exists(relpathNt))
+	{
+		std::cout << "failed to find name.nt or relpath.nt file" << std::endl;
+		return;
+	}
+
+	std::map<std::string, std::string> nameMap;
+	std::map<std::string, std::string> relpathMap;
+	std::map<std::string, std::string> llidMap;
+	std::map<std::string, std::shared_ptr<Engine::ModelPackageAsset>> nifMap;
+	std::ifstream nameNtFile(nameNt);
+	std::ifstream relpathNtFile(relpathNt);
+	std::ifstream llidNtFile(llidPath);
+
+	parseNTFile(nameNtFile, nameMap, true);
+	parseNTFile(relpathNtFile, relpathMap, false);
+	parseNTFile(llidNtFile, llidMap, true);
+
+	std::map<std::string, std::string> nameAndRelpathMap;
+	std::map<std::string, std::string> nameAndLlidMap;
+	// iterate over nameMap and relpathMap and create a new map with the name and relpath
+	for (auto i : nameMap)
+	{
+		auto j = relpathMap.find(i.second);
+		if (j != relpathMap.end())
+		{
+			nameAndRelpathMap[i.first] = j->second;
+		}
+	}
+
+	for (auto i : llidMap)
+	{
+		auto j = relpathMap.find(i.second);
+		if (j != relpathMap.end())
+		{
+			nameAndLlidMap[i.first] = j->second;
+		}
+	}
+
+	std::map<std::string, FlatEntity> flatEntities;
+
+	NTMaps maps
+	{
+		nameAndRelpathMap,
+		nameAndLlidMap,
+		flatEntities
+	};
+
+	tinyxml2::XMLDocument doc;
+
+	doc.LoadFile(xBlock.string().c_str());
+
+	XMLElement* root = doc.RootElement();
+
+	if (nullptr != root)
+	{
+		XMLElement* entitySet = root -> FirstChildElement("entitySet");
+
+		if (nullptr != entitySet)
+		{
+			XMLElement* xmlEntity = entitySet -> FirstChildElement("entity");
+			const char* modelNameAttribute = nullptr;
+			XMLError err = xmlEntity->QueryStringAttribute("modelName", &modelNameAttribute);
+			if (!err)
+			{
+				FlatEntity* flatEntity = nullptr;
+				std::string modelPath;
+				//std::string nifAsset;
+
+				auto entityEntry = maps.FlatEntityMap.find(modelNameAttribute);
+				if (entityEntry != maps.FlatEntityMap.end())
+				{
+					flatEntity = &entityEntry->second;
+				}
+				else
+				{
+					auto modelPathEntry = maps.RelPathMap.find(modelNameAttribute);
+					if (modelPathEntry != maps.RelPathMap.end())
+					{
+						modelPath = modelPathEntry->second;
+						fs::path modelResourcePath = resourcesRoot;
+						modelResourcePath += fs::path(modelPath);
+						if (fs::exists(modelResourcePath))
+						{
+							flatEntity = parseFlat(maps, modelResourcePath, modelNameAttribute);
+						}
+					}
+				}
+
+				std::shared_ptr<Engine::ModelPackageAsset> nifAsset = nifMap[modelNameAttribute];
+
+				if (nifAsset == nullptr)
+				{
+					nifAsset = Engine::Create<Engine::ModelPackageAsset>();
+					nifAsset->SetImportPath(resourcesRoot);
+					nifAsset->SetPath(flatEntity->ModelPath, Enum::AssetType::GameAsset, std::ios::binary);
+					nifAsset->Load();
+					nifMap[modelNameAttribute] = nifAsset;
+				}
+
+				std::shared_ptr<Transform> modelTransform = Engine::Create<Transform>();
+				modelTransform->Name = xmlEntity->Attribute("name");
+				nifAsset->Instantiate(modelTransform, scene);
+				transforms.push_back(modelTransform);
+
+
+				//auto nifAssetEntry = maps.LlidMap.find(modelNameAttribute);
+				//if (nifAssetEntry != maps.LlidMap.end())
+				//{
+				//	nifAsset = nifAssetEntry->second;
+				//}
+				//std::string nifAsset = maps.LlidMap.find(modelPath);
+				//fs::path nifPath = resourcesRoot;
+				//nifPath += modelPath;
+			}
+		}
+	}
+	
+}
+
+char readFile(std::ifstream& file, char* buffer, size_t bufferSize, size_t& readIn, int& index)
+{
+	++index;
+
+	if (index >= bufferSize)
+	{
+		if (file.eof())
+			return 0;
+
+		file.read(buffer, bufferSize);
+
+		readIn = file.gcount();
+		index = 0;
+
+		if (readIn == 0)
+			return 0;
+	}
+
+	return buffer[index];
+}
+
+FlatEntity* parseFlat(NTMaps& maps, const fs::path& flatPath, const std::string& flatName)
+{
+	FlatEntity* entity = &maps.FlatEntityMap[flatName];
+
+	tinyxml2::XMLDocument doc;
+
+	doc.LoadFile(flatPath.string().c_str());
+
+	XMLElement* root = doc.RootElement();
+
+	for (const XMLElement* element = root->FirstChildElement(); element != nullptr; element = element->NextSiblingElement())
+	{
+		const char* elementName = nullptr;
+		XMLError err = element->QueryStringAttribute("name", &elementName);
+		if (!err)
+		{
+			if (strcmp(elementName, "NifAsset") == 0)
+			{
+				const char* nifAsset = nullptr;
+				const XMLElement* childElement = element->FirstChildElement();
+				err = childElement->QueryStringAttribute("value", &nifAsset);
+				if (!err)
+				{
+					auto nifAssetEntry = maps.LlidMap.find(nifAsset);
+					if (nifAssetEntry != maps.LlidMap.end())
+					{
+						entity->NifAsset = nifAssetEntry->second;
+					}
+
+				}
+			}
+		}
+	}
+
+	return entity;
+}
+
+void parseNTFile(std::ifstream& file, std::map<std::string, std::string>& output, bool swap)
+{
+	std::vector<char> uuid;
+	std::vector<char> value;
+
+	const size_t bufferSize = 0x100;
+	char buffer[bufferSize];
+	size_t readIn = 0;
+	int index = 0;
+	char character = (char) 0xFF;
+
+	while (character != 0)
+	{
+		//for (int i = 0; i < 2; ++i)
+			while (character != '<' && character != 0)
+				character = readFile(file, buffer, bufferSize, readIn, index);
+
+		uuid.clear();
+
+		while (character != '>' && character != 0)
+		{
+			character = readFile(file, buffer, bufferSize, readIn, index);
+
+			uuid.push_back(character);
+		}
+
+		uuid.push_back(0);
+
+		if (character == 0)
+			return;
+
+		while (character != '"' && character != 0)
+			character = readFile(file, buffer, bufferSize, readIn, index);
+
+		value.clear();
+
+		character = readFile(file, buffer, bufferSize, readIn, index);
+		while (character != '"' && character != 0)
+		{
+			value.push_back(character);
+
+			character = readFile(file, buffer, bufferSize, readIn, index);
+		}
+
+		value.push_back(0);
+
+		std::string keyResult = uuid.data();
+		std::string valueResult = value.data();
+		if (swap)
+			std::swap(keyResult, valueResult);
+		if (character != 0)
+			output[keyResult] = valueResult;
 	}
 }
 

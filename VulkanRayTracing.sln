@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanRayTracing", "VulkanR
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanModules", "VulkanModules\VulkanModules.vcxproj", "{836AEB0C-B0FB-4EB8-8570-FADE039FC53E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TinyXML2", "TinyXML2\TinyXML2.vcxproj", "{B83503C1-61B7-44B0-9A9F-B5F3FE078295}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{836AEB0C-B0FB-4EB8-8570-FADE039FC53E}.Release|x64.Build.0 = Release|x64
 		{836AEB0C-B0FB-4EB8-8570-FADE039FC53E}.Release|x86.ActiveCfg = Release|Win32
 		{836AEB0C-B0FB-4EB8-8570-FADE039FC53E}.Release|x86.Build.0 = Release|Win32
+		{B83503C1-61B7-44B0-9A9F-B5F3FE078295}.Debug|x64.ActiveCfg = Debug|x64
+		{B83503C1-61B7-44B0-9A9F-B5F3FE078295}.Debug|x64.Build.0 = Debug|x64
+		{B83503C1-61B7-44B0-9A9F-B5F3FE078295}.Debug|x86.ActiveCfg = Debug|Win32
+		{B83503C1-61B7-44B0-9A9F-B5F3FE078295}.Debug|x86.Build.0 = Debug|Win32
+		{B83503C1-61B7-44B0-9A9F-B5F3FE078295}.Release|x64.ActiveCfg = Release|x64
+		{B83503C1-61B7-44B0-9A9F-B5F3FE078295}.Release|x64.Build.0 = Release|x64
+		{B83503C1-61B7-44B0-9A9F-B5F3FE078295}.Release|x86.ActiveCfg = Release|Win32
+		{B83503C1-61B7-44B0-9A9F-B5F3FE078295}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

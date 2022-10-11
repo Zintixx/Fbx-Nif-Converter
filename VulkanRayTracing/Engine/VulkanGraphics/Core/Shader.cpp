@@ -1,6 +1,7 @@
 #include "Shader.h"
 
 import <fstream>;
+import <vector>;
 
 #include "VulkanErrorHandling.h"
 #include "GraphicsWindow.h"
