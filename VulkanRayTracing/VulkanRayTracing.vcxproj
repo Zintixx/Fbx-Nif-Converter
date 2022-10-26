@@ -364,6 +364,7 @@
       <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MultiThreadedDLL</RuntimeLibrary>
       <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
+    <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Assets\Asset.h" />
@@ -444,6 +445,7 @@
     <ClInclude Include="Engine\VulkanGraphics\Scene\Skeleton.h" />
     <ClInclude Include="Engine\VulkanGraphics\Scene\SkeletonData-decl.h" />
     <ClInclude Include="Engine\VulkanGraphics\Scene\SkeletonData.h" />
+    <ClInclude Include="Parser.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stb_image_write.h" />
     <ClInclude Include="stb_truetype.h" />

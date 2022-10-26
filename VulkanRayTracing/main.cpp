@@ -117,7 +117,7 @@ std::shared_ptr<Graphics::MeshAsset> hairMeshAsset;
 std::vector<std::shared_ptr<Transform>> transforms;
 std::vector<std::shared_ptr<Transform>> handleTransforms;
 
-fs::path resourcesRoot("C:/Users/Adrian/Documents/GitHub/Fbx-Nif-Converter/VulkanRayTracing/resources");
+fs::path resourcesRoot("resources/");
 float spinAngle = 0.1f;
 
 float degreesToRadians(float degrees)
@@ -552,6 +552,10 @@ struct NTMaps
 
 void parse()
 {
+	std::shared_ptr<Transform> mapTransform = Engine::Create<Transform>();
+	mapTransform->SetTransformation(Matrix4::NewScale(0.001, 0.001, 0.001));
+	transforms.push_back(mapTransform);
+
 	if (!fs::exists(resourcesRoot))
 	{
 		std::cout << "failed to open resources directory" << std::endl;
@@ -667,8 +671,8 @@ void parse()
 				if (nifAsset == nullptr)
 				{
 					nifAsset = Engine::Create<Engine::ModelPackageAsset>();
-					nifAsset->SetImportPath(resourcesRoot);
-					nifAsset->SetPath(flatEntity->ModelPath, Enum::AssetType::GameAsset, std::ios::binary);
+					nifAsset->SetImportPath(resourcesRoot.string());
+					nifAsset->SetPath(flatEntity->NifAsset, Enum::AssetType::GameAsset, std::ios::binary);
 					nifAsset->Load();
 					nifMap[modelNameAttribute] = nifAsset;
 				}
@@ -676,17 +680,7 @@ void parse()
 				std::shared_ptr<Transform> modelTransform = Engine::Create<Transform>();
 				modelTransform->Name = xmlEntity->Attribute("name");
 				nifAsset->Instantiate(modelTransform, scene);
-				transforms.push_back(modelTransform);
-
-
-				//auto nifAssetEntry = maps.LlidMap.find(modelNameAttribute);
-				//if (nifAssetEntry != maps.LlidMap.end())
-				//{
-				//	nifAsset = nifAssetEntry->second;
-				//}
-				//std::string nifAsset = maps.LlidMap.find(modelPath);
-				//fs::path nifPath = resourcesRoot;
-				//nifPath += modelPath;
+				modelTransform->SetParent(mapTransform);
 			}
 		}
 	}
@@ -737,7 +731,7 @@ FlatEntity* parseFlat(NTMaps& maps, const fs::path& flatPath, const std::string&
 				err = childElement->QueryStringAttribute("value", &nifAsset);
 				if (!err)
 				{
-					auto nifAssetEntry = maps.LlidMap.find(nifAsset);
+					auto nifAssetEntry = maps.LlidMap.find(nifAsset + 9);
 					if (nifAssetEntry != maps.LlidMap.end())
 					{
 						entity->NifAsset = nifAssetEntry->second;

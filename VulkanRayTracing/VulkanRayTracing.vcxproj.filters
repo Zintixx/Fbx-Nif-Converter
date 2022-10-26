@@ -52,6 +52,9 @@
     <Filter Include="Source Files\GraphicsEngine\RenderPipeline">
       <UniqueIdentifier>{96085f8f-c514-4de8-93f2-f8fe5a276937}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Parsing">
+      <UniqueIdentifier>{385fab8d-c434-49ef-a92d-d77f72f0d692}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -209,6 +212,9 @@
     </ClCompile>
     <ClCompile Include="Engine\VulkanGraphics\RenderPipeline\DeferredOutputPipeline.cpp">
       <Filter>Source Files\GraphicsEngine\RenderPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser.cpp">
+      <Filter>Parsing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -454,6 +460,9 @@
     </ClInclude>
     <ClInclude Include="Engine\VulkanGraphics\Scene\DyeablePhongMaterial.h">
       <Filter>Source Files\GraphicsEngine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser.h">
+      <Filter>Parsing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
